@@ -1,0 +1,40 @@
+provider "azurerm" {
+  features {}
+
+  subscription_id = var.subscription_id
+}
+
+resource "azurerm_resource_group" "terraform_state" {
+  name     = "rg-${var.project_name}-tfstate"
+  location = var.location
+
+  tags = {
+    project    = var.project_name
+    purpose    = "terraform-state"
+    managed_by = "terraform"
+  }
+}
+
+resource "azurerm_storage_account" "terraform_state" {
+  name                     = "stfieldopstfstate"
+  resource_group_name      = azurerm_resource_group.terraform_state.name
+  location                 = azurerm_resource_group.terraform_state.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  min_tls_version                 = "TLS1_2"
+  public_network_access           = "Enabled"
+  allow_nested_items_to_be_public = false
+
+  tags = {
+    project    = var.project_name
+    purpose    = "terraform-state"
+    managed_by = "terraform"
+  }
+}
+
+resource "azurerm_storage_container" "terraform_state" {
+  name                  = "tfstate"
+  storage_account_id    = azurerm_storage_account.terraform_state.id
+  container_access_type = "private"
+}

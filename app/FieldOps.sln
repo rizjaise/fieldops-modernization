@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FieldOps.Api", "FieldOps.Api\FieldOps.Api.csproj", "{C8EC9ECA-3046-4093-89DB-B890C9670B32}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FieldOps.Api.Tests", "FieldOps.Api.Tests\FieldOps.Api.Tests.csproj", "{D2257FDB-BC30-45E6-936B-B7B629537CDF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C8EC9ECA-3046-4093-89DB-B890C9670B32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8EC9ECA-3046-4093-89DB-B890C9670B32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8EC9ECA-3046-4093-89DB-B890C9670B32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8EC9ECA-3046-4093-89DB-B890C9670B32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2257FDB-BC30-45E6-936B-B7B629537CDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2257FDB-BC30-45E6-936B-B7B629537CDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2257FDB-BC30-45E6-936B-B7B629537CDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2257FDB-BC30-45E6-936B-B7B629537CDF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
