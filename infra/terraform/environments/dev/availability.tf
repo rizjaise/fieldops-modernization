@@ -4,7 +4,7 @@ resource "azurerm_application_insights_web_test" "fieldops_health" {
   resource_group_name     = azurerm_resource_group.fieldops.name
   application_insights_id = azurerm_application_insights.fieldops.id
 
-  kind     = "ping"
+  kind      = "ping"
   frequency = 300
   timeout   = 30
   enabled   = true
