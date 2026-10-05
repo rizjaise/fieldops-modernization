@@ -44,3 +44,19 @@ jobs:
       - name: Terraform Validate - DEV
         working-directory: ./infra/terraform/environments/dev
         run: terraform validate
+
+      - name: Terraform Init - UAT
+        working-directory: ./infra/terraform/environments/uat
+        run: terraform init -upgrade -backend=false
+
+      - name: Terraform Validate - UAT
+        working-directory: ./infra/terraform/environments/uat
+        run: terraform validate
+
+      - name: Terraform Init - PROD
+        working-directory: ./infra/terraform/environments/prod
+        run: terraform init -upgrade -backend=false
+
+      - name: Terraform Validate - PROD
+        working-directory: ./infra/terraform/environments/prod
+        run: terraform validate
