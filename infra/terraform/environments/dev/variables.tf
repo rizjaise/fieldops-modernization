@@ -33,3 +33,14 @@ variable "sql_admin_password" {
   type        = string
   sensitive   = true
 }
+
+variable "app_service_sku" {
+  description = "App Service Plan SKU for this environment."
+  type        = string
+  default     = "B1"
+
+  validation {
+    condition     = contains(["B1", "S1"], var.app_service_sku)
+    error_message = "app_service_sku must be either B1 or S1."
+  }
+}

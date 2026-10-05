@@ -4,7 +4,7 @@ resource "azurerm_service_plan" "fieldops" {
   location            = azurerm_resource_group.fieldops.location
 
   os_type  = "Windows"
-  sku_name = "B1"
+  sku_name = var.app_service_sku
 
   tags = {
     project     = var.project_name

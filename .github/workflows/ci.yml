@@ -17,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .Net
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
@@ -30,3 +30,34 @@ jobs:
 
       - name: Test
         run: dotnet test ./app/FieldOps.sln --configuration Release --no-build
+
+  package:
+    name: Package Application
+    needs: build-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore ./app/FieldOps.sln
+
+      - name: Publish
+        run: dotnet publish ./app/FieldOps.Api/FieldOps.Api.csproj --configuration Release --output ./publish --no-restore
+
+      - name: Create deployment package
+        run: |
+          cd publish
+          zip -r ../fieldops-api.zip .
+
+      - name: Upload deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fieldops-api
+          path: ./fieldops-api.zip
