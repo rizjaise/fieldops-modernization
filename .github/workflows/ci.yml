@@ -31,6 +31,42 @@ jobs:
       - name: Test
         run: dotnet test ./app/FieldOps.sln --configuration Release --no-build
 
+  database-migration:
+      name: Generate Database Migration
+      needs: build-and-test
+      runs-on: ubuntu-latest
+
+      steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore ./app/FieldOps.sln
+
+      - name: Install EF Core CLI
+        run: dotnet tool install --global dotnet-ef --version 8.0.31
+
+      - name: Generate idempotent migration script
+        run: |
+          mkdir -p ./database-artifact
+
+          dotnet ef migrations script \
+            --project ./app/FieldOps.Api \
+            --startup-project ./app/FieldOps.Api \
+            --idempotent \
+            --output ./database-artifact/fieldops-database-migrations.sql
+
+      - name: Upload database migration artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fieldops-database-migration
+          path: ./database-artifact/fieldops-database-migrations.sql
+
   package:
     name: Package Application
     needs: build-and-test

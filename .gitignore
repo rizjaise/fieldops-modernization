@@ -5,3 +5,9 @@
 *.tfstate.*
 crash.log
 crash.*.log
+artifacts/
+**/bin/
+**/obj/
+**/bin/
+**/obj/
+artifacts/
