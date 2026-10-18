@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using FieldOps.Api.Services;
 using FieldOps.Api.Authorization;
 using Microsoft.AspNetCore.Authorization;
-using FieldOps.Api.Authorization;
 
 namespace FieldOps.Api.Controllers;
 

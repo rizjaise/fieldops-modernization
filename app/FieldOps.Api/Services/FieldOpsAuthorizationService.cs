@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FieldOps.Api.Services;
 
-public class FieldOpsAuthorizationService : IFieldOpsAuthorizationService
+public class FieldOpsAuthorizationService
+    : IFieldOpsAuthorizationService
 {
     private readonly FieldOpsDbContext _db;
     private readonly IUserIdentityService _userIdentityService;
@@ -24,9 +25,18 @@ public class FieldOpsAuthorizationService : IFieldOpsAuthorizationService
         int serviceRequestId,
         CancellationToken cancellationToken = default)
     {
-        if (IsPrivilegedUser())
+        var user = _httpContextAccessor.HttpContext?.User;
+
+        if (user is null)
+        {
+            return false;
+        }
+
+        if (user.IsInRole("Dispatcher") ||
+            user.IsInRole("Administrator"))
         {
             return await _db.ServiceRequests
+                .AsNoTracking()
                 .AnyAsync(
                     x => x.Id == serviceRequestId,
                     cancellationToken);
@@ -40,37 +50,58 @@ public class FieldOpsAuthorizationService : IFieldOpsAuthorizationService
             return false;
         }
 
-        var customerOwnsRequest = await _db.ServiceRequests
-            .AnyAsync(
-                x =>
-                    x.Id == serviceRequestId &&
-                    x.Customer.IdentityObjectId == identityObjectId,
-                cancellationToken);
-
-        if (customerOwnsRequest)
+        if (user.IsInRole("Customer"))
         {
-            return true;
+            return await _db.ServiceRequests
+                .AsNoTracking()
+                .AnyAsync(
+                    x =>
+                        x.Id == serviceRequestId &&
+                        x.Customer.IdentityObjectId ==
+                            identityObjectId,
+                    cancellationToken);
         }
 
-        return await _db.Assignments
-            .AnyAsync(
-                x =>
-                    x.ServiceRequestId == serviceRequestId &&
-                    x.IsActive &&
-                    x.Technician.IdentityObjectId == identityObjectId,
-                cancellationToken);
+        if (user.IsInRole("Technician"))
+        {
+            return await _db.Assignments
+                .AsNoTracking()
+                .AnyAsync(
+                    x =>
+                        x.ServiceRequestId == serviceRequestId &&
+                        x.IsActive &&
+                        x.Technician.IdentityObjectId ==
+                            identityObjectId,
+                    cancellationToken);
+        }
+
+        return false;
     }
 
     public async Task<bool> CanAccessAssignmentAsync(
         int assignmentId,
         CancellationToken cancellationToken = default)
     {
-        if (IsPrivilegedUser())
+        var user = _httpContextAccessor.HttpContext?.User;
+
+        if (user is null)
+        {
+            return false;
+        }
+
+        if (user.IsInRole("Dispatcher") ||
+            user.IsInRole("Administrator"))
         {
             return await _db.Assignments
+                .AsNoTracking()
                 .AnyAsync(
                     x => x.Id == assignmentId,
                     cancellationToken);
+        }
+
+        if (!user.IsInRole("Technician"))
+        {
+            return false;
         }
 
         var identityObjectId =
@@ -82,18 +113,13 @@ public class FieldOpsAuthorizationService : IFieldOpsAuthorizationService
         }
 
         return await _db.Assignments
+            .AsNoTracking()
             .AnyAsync(
                 x =>
                     x.Id == assignmentId &&
-                    x.Technician.IdentityObjectId == identityObjectId,
+                    x.IsActive &&
+                    x.Technician.IdentityObjectId ==
+                        identityObjectId,
                 cancellationToken);
-    }
-
-    private bool IsPrivilegedUser()
-    {
-        var user = _httpContextAccessor.HttpContext?.User;
-
-        return user?.IsInRole("Dispatcher") == true ||
-               user?.IsInRole("Administrator") == true;
     }
 }
