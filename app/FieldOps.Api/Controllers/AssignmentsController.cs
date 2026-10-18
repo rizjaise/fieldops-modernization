@@ -3,6 +3,9 @@ using FieldOps.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FieldOps.Api.Services;
+using FieldOps.Api.Authorization;
+using Microsoft.AspNetCore.Authorization;
+using FieldOps.Api.Authorization;
 
 namespace FieldOps.Api.Controllers;
 
@@ -11,12 +14,17 @@ namespace FieldOps.Api.Controllers;
 public class AssignmentsController : ControllerBase
 {
     private readonly FieldOpsDbContext _db;
+    private readonly IFieldOpsAuthorizationService _authorizationService;
 
-    public AssignmentsController(FieldOpsDbContext db)
+    public AssignmentsController(
+        FieldOpsDbContext db,
+        IFieldOpsAuthorizationService authorizationService)
     {
         _db = db;
+        _authorizationService = authorizationService;
     }
 
+    [Authorize(Policy = FieldOpsPolicies.DispatcherOrAdministrator)]
     [HttpPost]
     public async Task<ActionResult<AssignmentResponse>> Create(
         CreateAssignmentRequest request)
@@ -40,23 +48,23 @@ public class AssignmentsController : ControllerBase
         }
 
         var hasActiveAssignment = await _db.Assignments
-    .AnyAsync(x =>
+        .AnyAsync(x =>
         x.ServiceRequestId == request.ServiceRequestId &&
         x.IsActive);
 
-if (!AssignmentRules.CanAssignTechnician(
-        technician.IsActive,
-        hasActiveAssignment))
-{
-    if (!technician.IsActive)
-    {
-        return BadRequest(
-            $"Technician with ID {request.TechnicianId} is inactive.");
-    }
+        if (!AssignmentRules.CanAssignTechnician(
+                technician.IsActive,
+                hasActiveAssignment))
+        {
+            if (!technician.IsActive)
+            {
+                return BadRequest(
+                $"Technician with ID {request.TechnicianId} is inactive.");
+            }
 
-    return Conflict(
-        $"Service request {request.ServiceRequestId} already has an active assignment.");
-}
+            return Conflict(
+            $"Service request {request.ServiceRequestId} already has an active assignment.");
+        }
 
         var assignment = new Assignment
         {
@@ -67,18 +75,18 @@ if (!AssignmentRules.CanAssignTechnician(
         };
 
         var statusHistory = new StatusHistory
-{
-    ServiceRequestId = serviceRequest.Id,
-    FromStatus = serviceRequest.Status,
-    ToStatus = ServiceRequestStatus.Assigned,
-    ChangedAtUtc = DateTime.UtcNow,
-    ChangedBy = "system"
-};
+        {
+            ServiceRequestId = serviceRequest.Id,
+            FromStatus = serviceRequest.Status,
+            ToStatus = ServiceRequestStatus.Assigned,
+            ChangedAtUtc = DateTime.UtcNow,
+            ChangedBy = "system"
+        };
 
-serviceRequest.Status = ServiceRequestStatus.Assigned;
+        serviceRequest.Status = ServiceRequestStatus.Assigned;
 
-_db.Assignments.Add(assignment);
-_db.StatusHistories.Add(statusHistory);
+        _db.Assignments.Add(assignment);
+        _db.StatusHistories.Add(statusHistory);
 
         await _db.SaveChangesAsync();
 
@@ -98,9 +106,21 @@ _db.StatusHistories.Add(statusHistory);
             response);
     }
 
+    [Authorize(Policy = FieldOpsPolicies.TechnicianOrDispatcherOrAdministrator)]
     [HttpGet("{id:int}")]
     public async Task<ActionResult<AssignmentResponse>> GetById(int id)
     {
+        if (User.IsInRole(FieldOpsPolicies.Technician))
+        {
+            var canAccess = await _authorizationService
+                .CanAccessAssignmentAsync(id);
+
+            if (!canAccess)
+            {
+                return Forbid();
+            }
+        }
+
         var assignment = await _db.Assignments
             .AsNoTracking()
             .Include(x => x.Technician)

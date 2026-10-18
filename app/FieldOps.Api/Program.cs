@@ -2,6 +2,8 @@ using FieldOps.Api.Data;
 using FieldOps.Api.Models;
 using Microsoft.EntityFrameworkCore;
 using FieldOps.Api.Services;
+using FieldOps.Api.Authorization;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,13 +12,54 @@ builder.Services.AddDbContext<FieldOpsDbContext>(options =>
         builder.Configuration.GetConnectionString("FieldOps")));
 
 builder.Services.AddControllers();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(
+        FieldOpsPolicies.Customer,
+        policy => policy.RequireRole(FieldOpsPolicies.Customer));
+
+    options.AddPolicy(
+        FieldOpsPolicies.Technician,
+        policy => policy.RequireRole(FieldOpsPolicies.Technician));
+
+    options.AddPolicy(
+        FieldOpsPolicies.Dispatcher,
+        policy => policy.RequireRole(FieldOpsPolicies.Dispatcher));
+
+    options.AddPolicy(
+        FieldOpsPolicies.Administrator,
+        policy => policy.RequireRole(FieldOpsPolicies.Administrator));
+
+    options.AddPolicy(
+        FieldOpsPolicies.CustomerOrDispatcherOrAdministrator,
+        policy => policy.RequireRole(
+            FieldOpsPolicies.Customer,
+            FieldOpsPolicies.Dispatcher,
+            FieldOpsPolicies.Administrator));
+
+    options.AddPolicy(
+        FieldOpsPolicies.TechnicianOrDispatcherOrAdministrator,
+        policy => policy.RequireRole(
+            FieldOpsPolicies.Technician,
+            FieldOpsPolicies.Dispatcher,
+            FieldOpsPolicies.Administrator));
+
+    options.AddPolicy(
+        FieldOpsPolicies.DispatcherOrAdministrator,
+        policy => policy.RequireRole(
+            FieldOpsPolicies.Dispatcher,
+            FieldOpsPolicies.Administrator));
+});
 builder.Services.AddHealthChecks();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IFieldOpsAuthorizationService, FieldOpsAuthorizationService>();
+builder.Services.AddScoped<IUserIdentityService, UserIdentityService>();
 builder.Services.AddScoped<IAttachmentStorage, LocalAttachmentStorage>();
 builder.Services.Configure<AttachmentStorageOptions>(
-    builder.Configuration.GetSection("AttachmentStorage"));         
+    builder.Configuration.GetSection("AttachmentStorage"));
 
 var app = builder.Build();
 

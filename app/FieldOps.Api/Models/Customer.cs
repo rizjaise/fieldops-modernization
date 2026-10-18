@@ -8,6 +8,8 @@ public class Customer
 
     public string Email { get; set; } = string.Empty;
 
+    public string? IdentityObjectId { get; set; }
+
     public string Phone { get; set; } = string.Empty;
 
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;

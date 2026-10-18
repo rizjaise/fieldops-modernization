@@ -62,20 +62,20 @@ public class FieldOpsDbContext : DbContext
     .HasForeignKey(x => x.ServiceRequestId)
     .OnDelete(DeleteBehavior.Restrict);
 
-modelBuilder.Entity<StatusHistory>()
-    .HasIndex(x => new
-    {
-        x.ServiceRequestId,
-        x.ChangedAtUtc
-    });
+        modelBuilder.Entity<StatusHistory>()
+            .HasIndex(x => new
+            {
+                x.ServiceRequestId,
+                x.ChangedAtUtc
+            });
 
-    modelBuilder.Entity<Attachment>()
-    .HasOne(x => x.ServiceRequest)
-    .WithMany()
-    .HasForeignKey(x => x.ServiceRequestId)
-    .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<Attachment>()
+        .HasOne(x => x.ServiceRequest)
+        .WithMany()
+        .HasForeignKey(x => x.ServiceRequestId)
+        .OnDelete(DeleteBehavior.Restrict);
 
-modelBuilder.Entity<Attachment>()
-    .HasIndex(x => x.ServiceRequestId);
+        modelBuilder.Entity<Attachment>()
+            .HasIndex(x => x.ServiceRequestId);
     }
 }
