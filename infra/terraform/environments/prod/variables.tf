@@ -22,16 +22,14 @@ variable "project_name" {
   default     = "fieldops"
 }
 
-variable "sql_admin_username" {
-  description = "SQL administrator username."
+variable "sql_entra_admin_login" {
+  description = "Display name of the Microsoft Entra security group that administers Azure SQL."
   type        = string
-  sensitive   = true
 }
 
-variable "sql_admin_password" {
-  description = "SQL administrator password."
+variable "sql_entra_admin_object_id" {
+  description = "Object ID of the Microsoft Entra security group that administers Azure SQL."
   type        = string
-  sensitive   = true
 }
 
 variable "app_service_sku" {
@@ -43,4 +41,10 @@ variable "app_service_sku" {
     condition     = contains(["B1", "S1"], var.app_service_sku)
     error_message = "app_service_sku must be either B1 or S1."
   }
+}
+
+variable "sql_allowed_ip_addresses" {
+  description = "Explicit IP addresses permitted to connect to Azure SQL."
+  type        = set(string)
+  default     = []
 }

@@ -42,5 +42,19 @@ resource "azurerm_windows_web_app" "fieldops" {
 
   app_settings = {
     APPLICATIONINSIGHTS_CONNECTION_STRING = azurerm_application_insights.fieldops.connection_string
+
+    "ConnectionStrings__FieldOps" = "Server=tcp:${azurerm_mssql_server.fieldops.fully_qualified_domain_name},1433;Initial Catalog=${azurerm_mssql_database.fieldops.name};Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=Active Directory Managed Identity;"
+  }
+}
+
+resource "azurerm_app_service_connection" "sql" {
+  name               = "conn-${var.project_name}-${var.environment}-sql"
+  app_service_id     = azurerm_windows_web_app.fieldops.id
+  target_resource_id = azurerm_mssql_database.fieldops.id
+
+  client_type = "none"
+
+  authentication {
+    type = "systemAssignedIdentity"
   }
 }

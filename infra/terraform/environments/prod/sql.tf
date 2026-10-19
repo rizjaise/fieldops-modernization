@@ -1,10 +1,15 @@
 resource "azurerm_mssql_server" "fieldops" {
-  name                         = "sql-${var.project_name}-${var.environment}"
-  resource_group_name          = azurerm_resource_group.fieldops.name
-  location                     = azurerm_resource_group.fieldops.location
-  version                      = "12.0"
-  administrator_login          = var.sql_admin_username
-  administrator_login_password = var.sql_admin_password
+  name                = "sql-${var.project_name}-${var.environment}"
+  resource_group_name = azurerm_resource_group.fieldops.name
+  location            = azurerm_resource_group.fieldops.location
+  version             = "12.0"
+  azuread_administrator {
+    login_username              = var.sql_entra_admin_login
+    object_id                   = var.sql_entra_admin_object_id
+    tenant_id                   = data.azurerm_client_config.current.tenant_id
+    azuread_authentication_only = true
+  }
+  public_network_access_enabled = true
 
   minimum_tls_version = "1.2"
 
