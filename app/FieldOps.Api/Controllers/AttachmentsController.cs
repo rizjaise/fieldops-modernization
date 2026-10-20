@@ -64,6 +64,65 @@ public class AttachmentsController : ControllerBase
         return Ok(attachments);
     }
 
+    [Authorize]
+    [HttpGet("{attachmentId:int}/content")]
+    public async Task<IActionResult> Download(
+    int serviceRequestId,
+    int attachmentId,
+    [FromServices] IAttachmentStorage storage,
+    CancellationToken cancellationToken)
+    {
+        var serviceRequestExists = await _db.ServiceRequests
+            .AnyAsync(
+                x => x.Id == serviceRequestId,
+                cancellationToken);
+
+        if (!serviceRequestExists)
+        {
+            return NotFound(
+                $"Service request with ID {serviceRequestId} does not exist.");
+        }
+
+        var canAccess = await _authorizationService
+            .CanAccessServiceRequestAsync(
+                serviceRequestId,
+                cancellationToken);
+
+        if (!canAccess)
+        {
+            return Forbid();
+        }
+
+        var attachment = await _db.Attachments
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                x => x.Id == attachmentId &&
+                     x.ServiceRequestId == serviceRequestId,
+                cancellationToken);
+
+        if (attachment is null)
+        {
+            return NotFound(
+                $"Attachment with ID {attachmentId} does not exist for this service request.");
+        }
+
+        try
+        {
+            var stream = await storage.DownloadAsync(
+                attachment.BlobPath,
+                cancellationToken);
+
+            return File(
+                stream,
+                attachment.ContentType,
+                attachment.FileName);
+        }
+        catch (FileNotFoundException)
+        {
+            return NotFound("Stored attachment content was not found.");
+        }
+    }
+
     [Authorize(Policy = FieldOpsPolicies.TechnicianOrDispatcherOrAdministrator)]
     [HttpPost]
     [RequestSizeLimit(10 * 1024 * 1024)]

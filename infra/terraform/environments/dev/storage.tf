@@ -24,7 +24,7 @@ resource "azurerm_storage_container" "attachments" {
 }
 
 resource "azurerm_role_assignment" "app_blob_data_contributor" {
-  scope                = azurerm_storage_account.attachments.id
+  scope = azurerm_storage_container.attachments.id
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = azurerm_windows_web_app.fieldops.identity[0].principal_id
 }
