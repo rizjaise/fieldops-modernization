@@ -48,3 +48,8 @@ variable "sql_allowed_ip_addresses" {
   type        = set(string)
   default     = []
 }
+
+variable "alert_email_addresses" {
+  description = "Email addresses that receive FieldOps Azure Monitor alerts."
+  type        = list(string)
+}
